@@ -1,0 +1,693 @@
+basePath: /
+definitions:
+  schemas.ExternalSensorDataSchema:
+    properties:
+      batteryCharge:
+        type: integer
+      co2:
+        type: integer
+      guid:
+        type: string
+      tvoc:
+        type: integer
+    required:
+    - batteryCharge
+    - co2
+    - guid
+    - tvoc
+    type: object
+  schemas.LoginSchema:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  schemas.RegisterSchema:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  schemas.RoomCreateSchema:
+    properties:
+      name:
+        type: string
+      owner_id:
+        type: integer
+      zone_id:
+        type: integer
+    required:
+    - name
+    - owner_id
+    - zone_id
+    type: object
+  schemas.RoomSchema:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      owner_id:
+        type: integer
+      sensors:
+        items:
+          $ref: '#/definitions/schemas.SensorSchema'
+        type: array
+      zone_id:
+        type: integer
+    required:
+    - id
+    - name
+    - owner_id
+    - zone_id
+    type: object
+  schemas.RoomUpdateSchema:
+    properties:
+      name:
+        type: string
+    type: object
+  schemas.SensorCreateSchema:
+    properties:
+      guid:
+        type: string
+      name:
+        type: string
+      owner_id:
+        type: integer
+      room_id:
+        type: integer
+    required:
+    - guid
+    - name
+    - owner_id
+    - room_id
+    type: object
+  schemas.SensorSchema:
+    properties:
+      guid:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      owner_id:
+        type: integer
+      room_id:
+        type: integer
+    required:
+    - guid
+    - id
+    - name
+    - owner_id
+    - room_id
+    type: object
+  schemas.SensorUpdateSchema:
+    properties:
+      guid:
+        type: string
+      name:
+        type: string
+    type: object
+  schemas.TokenSchema:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  schemas.UserSchema:
+    properties:
+      id:
+        type: integer
+      is_superuser:
+        type: boolean
+      name:
+        type: string
+    required:
+    - id
+    - is_superuser
+    - name
+    type: object
+  schemas.UserUpdateSchema:
+    properties:
+      name:
+        type: string
+    type: object
+  schemas.ZoneCreateSchema:
+    properties:
+      name:
+        type: string
+      owner_id:
+        type: integer
+    required:
+    - name
+    - owner_id
+    type: object
+  schemas.ZoneSchema:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      owner_id:
+        type: integer
+      rooms:
+        items:
+          $ref: '#/definitions/schemas.RoomSchema'
+        type: array
+    required:
+    - id
+    - name
+    - owner_id
+    type: object
+  schemas.ZoneUpdateSchema:
+    properties:
+      name:
+        type: string
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: AntiVape API
+  termsOfService: http://swagger.io/terms/
+  title: AntiVape API in golang
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: login
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.LoginSchema'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.TokenSchema'
+      summary: Login
+      tags:
+      - Auth
+  /auth/me:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.UserSchema'
+      security:
+      - ApiKeyAuth: []
+      summary: Get me
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: register
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.RegisterSchema'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.UserSchema'
+      summary: Register
+      tags:
+      - Auth
+  /external/sensors_data:
+    post:
+      consumes:
+      - application/json
+      description: store sensordata
+      parameters:
+      - description: Create room
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.ExternalSensorDataSchema'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: store sensordata
+      tags:
+      - External
+  /room:
+    post:
+      consumes:
+      - application/json
+      description: create room
+      parameters:
+      - description: Create room
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.RoomCreateSchema'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.RoomSchema'
+      security:
+      - ApiKeyAuth: []
+      summary: Create room
+      tags:
+      - Room
+  /room/:
+    get:
+      consumes:
+      - application/json
+      description: Find rooms
+      parameters:
+      - in: query
+        name: owner_id
+        type: integer
+      - in: query
+        name: zone_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/schemas.RoomSchema'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Find rooms
+      tags:
+      - Room
+  /room/{id}:
+    delete:
+      description: Delete by id room
+      parameters:
+      - description: Room ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an room
+      tags:
+      - Room
+    get:
+      consumes:
+      - application/json
+      description: Get room
+      parameters:
+      - description: Room ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.RoomSchema'
+      security:
+      - ApiKeyAuth: []
+      summary: Get room
+      tags:
+      - Room
+    patch:
+      consumes:
+      - application/json
+      description: Update by json room
+      parameters:
+      - description: Room ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update room
+        in: body
+        name: room
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.RoomUpdateSchema'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - ApiKeyAuth: []
+      summary: Update an room
+      tags:
+      - Room
+  /sensor:
+    post:
+      consumes:
+      - application/json
+      description: create sensor
+      parameters:
+      - description: Create sensor
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.SensorCreateSchema'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.SensorSchema'
+      security:
+      - ApiKeyAuth: []
+      summary: Create sensor
+      tags:
+      - Sensor
+  /sensor/:
+    get:
+      consumes:
+      - application/json
+      description: Find sensors
+      parameters:
+      - in: query
+        name: owner_id
+        type: integer
+      - in: query
+        name: room_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/schemas.SensorSchema'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Find sensors
+      tags:
+      - Sensor
+  /sensor/{id}:
+    delete:
+      description: Delete by id sensor
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an sensor
+      tags:
+      - Sensor
+    get:
+      consumes:
+      - application/json
+      description: Get sensor
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.SensorSchema'
+      security:
+      - ApiKeyAuth: []
+      summary: Get sensor
+      tags:
+      - Sensor
+    patch:
+      consumes:
+      - application/json
+      description: Update by json sensor
+      parameters:
+      - description: Sensor ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update sensor
+        in: body
+        name: sensor
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.SensorUpdateSchema'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - ApiKeyAuth: []
+      summary: Update an sensor
+      tags:
+      - Sensor
+  /user/:
+    get:
+      consumes:
+      - application/json
+      description: Find users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/schemas.UserSchema'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Find users
+      tags:
+      - user
+  /user/{id}:
+    delete:
+      description: Delete by id user
+      parameters:
+      - description: user ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an user
+      tags:
+      - user
+    get:
+      consumes:
+      - application/json
+      description: Get user
+      parameters:
+      - description: user ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.UserSchema'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user
+      tags:
+      - user
+    patch:
+      consumes:
+      - application/json
+      description: Update by json user
+      parameters:
+      - description: user ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.UserUpdateSchema'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - ApiKeyAuth: []
+      summary: Update an user
+      tags:
+      - user
+  /zone:
+    post:
+      consumes:
+      - application/json
+      description: create zone
+      parameters:
+      - description: Create zone
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.ZoneCreateSchema'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/schemas.ZoneSchema'
+      security:
+      - ApiKeyAuth: []
+      summary: Create zone
+      tags:
+      - Zone
+  /zone/:
+    get:
+      consumes:
+      - application/json
+      description: Find zones
+      parameters:
+      - in: query
+        name: owner_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/schemas.ZoneSchema'
+            type: array
+      security:
+      - ApiKeyAuth: []
+      summary: Find zones
+      tags:
+      - Zone
+  /zone/{id}:
+    delete:
+      description: Delete by id zone
+      parameters:
+      - description: Zone ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+      security:
+      - ApiKeyAuth: []
+      summary: Delete an zone
+      tags:
+      - Zone
+    get:
+      consumes:
+      - application/json
+      description: Get zone
+      parameters:
+      - description: Zone ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.ZoneSchema'
+      security:
+      - ApiKeyAuth: []
+      summary: Get zone
+      tags:
+      - Zone
+    patch:
+      consumes:
+      - application/json
+      description: Update by json zone
+      parameters:
+      - description: Zone ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update zone
+        in: body
+        name: zone
+        required: true
+        schema:
+          $ref: '#/definitions/schemas.ZoneUpdateSchema'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - ApiKeyAuth: []
+      summary: Update an zone
+      tags:
+      - Zone
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
