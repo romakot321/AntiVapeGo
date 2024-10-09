@@ -90,6 +90,24 @@ definitions:
     - owner_id
     - room_id
     type: object
+  schemas.SensorDataRoomSchema:
+    properties:
+      co2:
+        type: integer
+      roomID:
+        type: integer
+      tvoc:
+        type: integer
+    type: object
+  schemas.SensorDataZoneSchema:
+    properties:
+      rooms:
+        items:
+          $ref: '#/definitions/schemas.SensorDataRoomSchema'
+        type: array
+      zoneID:
+        type: integer
+    type: object
   schemas.SensorSchema:
     properties:
       guid:
@@ -372,6 +390,27 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update an room
+      tags:
+      - Room
+  /room/{id}/statistic:
+    get:
+      description: Get room statistic
+      parameters:
+      - description: Room ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.SensorDataRoomSchema'
+      security:
+      - ApiKeyAuth: []
+      summary: Get room statistic
       tags:
       - Room
   /sensor:
@@ -683,6 +722,27 @@ paths:
       security:
       - ApiKeyAuth: []
       summary: Update an zone
+      tags:
+      - Zone
+  /zone/{id}/statistic:
+    get:
+      description: Get zone statistic
+      parameters:
+      - description: Zone ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schemas.SensorDataZoneSchema'
+      security:
+      - ApiKeyAuth: []
+      summary: Get zone statistic
       tags:
       - Zone
 securityDefinitions:

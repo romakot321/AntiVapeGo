@@ -4,6 +4,7 @@ import (
   "gorm.io/gorm"
   models "antivape/db"
   "antivape/schemas"
+  "antivape/repositories"
 )
 
 type ZoneService interface {
@@ -13,19 +14,22 @@ type ZoneService interface {
   Update(zoneID uint, schema schemas.ZoneUpdateSchema)
   Delete(zoneID uint)
   FilterByOwnerID(ownerID uint, zones ...schemas.ZoneSchema) []schemas.ZoneSchema
+  GetStatistic(zoneID uint) schemas.SensorDataZoneSchema
 }
 
 type zoneService struct {
   baseService
   db *gorm.DB
+  sensorDataRep repositories.SensorDataRepository
+  sensorRep repositories.SensorRepository
 }
 
 func (s zoneService) modelToSchema(model models.Zone) schemas.ZoneSchema {
   var rooms []schemas.RoomSchema
-  if len(model.Rooms) > 0 {
+  for _, room := range model.Rooms {
     rooms = append(
       rooms,
-      schemas.RoomSchema{Name: model.Rooms[0].Name, ZoneID: model.Rooms[0].ZoneID},
+      schemas.RoomSchema{Name: room.Name, ZoneID: room.ZoneID, ID: room.ID, OwnerID: room.OwnerID},
     )
   }
   return schemas.ZoneSchema{
@@ -75,13 +79,13 @@ func (s zoneService) Delete(zoneID uint) {
   s.delete(&models.Zone{}, zoneID)
 }
 
-func (s zoneService) GetStatistics(zoneID uint) {
-  var sensors []models.Sensor
-  // var sensorData []models.SensorData
-  var filters map[string]interface{}
-  filters["ZoneID"] = zoneID
+func (s zoneService) GetStatistic(zoneID uint) schemas.SensorDataZoneSchema {
+  filters := make(map[string]interface{}, 1)
+  filters["zone_id"] = zoneID
 
-  s.find(&sensors, filters)
+  statistic := s.sensorDataRep.GetStatistic(filters)
+
+  return schemas.SensorDataZoneSchema{Rooms: statistic, ZoneID: zoneID}
 }
 
 func (s zoneService) FilterByOwnerID(ownerID uint, zones ...schemas.ZoneSchema) []schemas.ZoneSchema {
@@ -93,6 +97,6 @@ func (s zoneService) FilterByOwnerID(ownerID uint, zones ...schemas.ZoneSchema) 
   return filtered
 }
 
-func NewZoneService(db *gorm.DB) ZoneService {
-  return zoneService{baseService: baseService{db: db}}
+func NewZoneService(db *gorm.DB, sensorDataRep repositories.SensorDataRepository) ZoneService {
+  return zoneService{baseService: baseService{db: db}, sensorDataRep: sensorDataRep}
 }

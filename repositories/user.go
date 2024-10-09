@@ -1,6 +1,8 @@
 package repositories
 
 import (
+  "log"
+
   "gorm.io/gorm"
   models "antivape/db"
 )
@@ -39,9 +41,21 @@ func (s userRepository) Create(name, passwordHash string) models.User {
   return model
 }
 
-func (s userRepository) Find(filters map[string]interface{}) []models.User {
+func(s userRepository) Find(filters map[string]interface{}) []models.User {
   var users []models.User
-  s.find(&users, filters)
+  query := s.db.Select("*")
+  roomID, ok := filters["room_id"]
+  if ok {
+    query = query.Where("guid = (?)", s.db.Table("sensors").Select("sensors.guid").Where("sensors.room_id = ?", roomID.(string)))
+  }
+  zoneID, ok := filters["zone_id"]
+  if ok {
+    query = query.Where("guid = (?)", s.db.Table("sensors").Select("sensors.guid").Where("sensors.zone_id = ?", zoneID.(string)))
+  }
+  result := query.Find(&users)
+  if result.Error != nil {
+    log.Println("Error find sensordata", result.Error)
+  }
   return users
 }
 

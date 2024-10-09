@@ -23,8 +23,8 @@ type RoomUpdateSchema struct {
 }
 
 type RoomFindSchema struct {
-  OwnerID *uint `json:"owner_id,omitempty"`
-  ZoneID *uint `json:"zone_id,omitempty"`
+  OwnerID *uint `json:"owner_id,omitempty" query:"owner_id"`
+  ZoneID *uint `json:"zone_id,omitempty" query:"owner_id"`
 }
 
 func (s RoomSchema) ToModel() models.Room {

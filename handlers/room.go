@@ -44,6 +44,30 @@ func (h roomHandler) handleCreate(c *fiber.Ctx) error {
   return c.Status(201).JSON(resp)
 }
 
+// Get room statistic godoc
+//
+//	@Summary		Get room statistic
+//	@Description	Get room statistic
+//	@Tags			Room
+//	@Produce		json
+//	@Param			id	path		int	true	"Room ID"
+//	@Success		200		{object}	schemas.SensorDataRoomSchema
+//	@Router			/room/{id}/statistic [get]
+//	@Security ApiKeyAuth
+func (h roomHandler) handleStatistic(c *fiber.Ctx) error {
+  roomID, err := strconv.Atoi(c.Params("id"))
+  if err != nil {
+    return c.Status(422).JSON(fiber.Map{"status": "error", "data": err})
+  }
+
+  room := h.roomService.Take(uint(roomID))
+  if room.OwnerID != h.authService.CurrentUserID(c) {
+    return c.Status(401).SendString("Not enough rights for this request")
+  }
+  statistic := h.roomService.GetStatistic(uint(roomID))
+  return c.JSON(statistic)
+}
+
 // Get room godoc
 //
 //	@Summary		Get room
@@ -81,9 +105,7 @@ func (h roomHandler) handleTake(c *fiber.Ctx) error {
 // @Security ApiKeyAuth
 func (h roomHandler) handleFind(c *fiber.Ctx) error {
   var schema schemas.RoomFindSchema
-  if err := c.BodyParser(&schema); err != nil {
-    return c.Status(422).JSON(fiber.Map{"status": "error", "data": err})
-  }
+  c.BodyParser(&schema)
 
   rooms := h.roomService.Find(schema)
   filteredRooms := h.roomService.FilterByOwnerID(h.authService.CurrentUserID(c), rooms...)
@@ -150,9 +172,10 @@ func (h roomHandler) Register(app *fiber.App) {
 
   router.Post("/", h.handleCreate)
   router.Get("/:id<int>/", h.handleTake)
+  router.Get("/:id<int>/statistic", h.handleStatistic)
   router.Get("/", h.handleFind)
-  router.Patch("/:id", h.handleUpdate)
-  router.Delete("/:id", h.handleDelete)
+  router.Patch("/:id<int>", h.handleUpdate)
+  router.Delete("/:id<int>", h.handleDelete)
 }
 
 func NewRoomHandler(roomService services.RoomService, authService services.AuthService) RoomHandler {

@@ -81,9 +81,7 @@ func (h zoneHandler) handleTake(c *fiber.Ctx) error {
 // @Security ApiKeyAuth
 func (h zoneHandler) handleFind(c *fiber.Ctx) error {
   var schema schemas.ZoneFindSchema
-  if err := c.BodyParser(&schema); err != nil {
-    return c.Status(422).JSON(fiber.Map{"status": "error", "data": err})
-  }
+  c.BodyParser(&schema)
 
   zones := h.zoneService.Find(schema)
   filteredZones := h.zoneService.FilterByOwnerID(h.authService.CurrentUserID(c), zones...)
@@ -145,14 +143,39 @@ func (h zoneHandler) handleDelete(c *fiber.Ctx) error {
   return nil
 }
 
+// Get zone statistic godoc
+//
+//	@Summary		Get zone statistic
+//	@Description	Get zone statistic
+//	@Tags			Zone
+//	@Produce		json
+//	@Param			id	path		int	true	"Zone ID"
+//	@Success		200		{object}	schemas.SensorDataZoneSchema
+//	@Router			/zone/{id}/statistic [get]
+//	@Security ApiKeyAuth
+func (h zoneHandler) handleStatistic(c *fiber.Ctx) error {
+  zoneID, err := strconv.Atoi(c.Params("id"))
+  if err != nil {
+    return c.Status(422).JSON(fiber.Map{"status": "error", "data": err})
+  }
+
+  zone := h.zoneService.Take(uint(zoneID))
+  if zone.OwnerID != h.authService.CurrentUserID(c) {
+    return c.Status(401).SendString("Not enough rights for this request")
+  }
+  statistic := h.zoneService.GetStatistic(uint(zoneID))
+  return c.JSON(statistic)
+}
+
 func (h zoneHandler) Register(app *fiber.App) {
   router := app.Group("/zone", middlewares.Protected(), logger.New())
 
   router.Post("/", h.handleCreate)
   router.Get("/:id<int>/", h.handleTake)
+  router.Get("/:id<int>/statistic", h.handleStatistic)
   router.Get("/", h.handleFind)
-  router.Patch("/:id", h.handleUpdate)
-  router.Delete("/:id", h.handleDelete)
+  router.Patch("/:id<int>", h.handleUpdate)
+  router.Delete("/:id<int>", h.handleDelete)
 }
 
 func NewZoneHandler(zoneService services.ZoneService, authService services.AuthService) ZoneHandler {

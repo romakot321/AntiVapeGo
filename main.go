@@ -26,11 +26,13 @@ func InitApp() *fiber.App {
   }
   redisConnection := db.InitRedis()
 
-  sensorService := services.NewSensorService(dbConnection)
-  roomService := services.NewRoomService(dbConnection)
   userRepository := repositories.NewUserRepository(dbConnection)
+  sensorDataRepository := repositories.NewSensorDataRepository(dbConnection)
+
+  sensorService := services.NewSensorService(dbConnection)
+  roomService := services.NewRoomService(dbConnection, sensorDataRepository)
   authService := services.NewAuthService(userRepository)
-  zoneService := services.NewZoneService(dbConnection)
+  zoneService := services.NewZoneService(dbConnection, sensorDataRepository)
   externalService := services.NewExternalService(redisConnection, dbConnection)
   userService := services.NewUserService(dbConnection)
 

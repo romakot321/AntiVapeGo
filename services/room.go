@@ -4,6 +4,7 @@ import (
   "gorm.io/gorm"
   models "antivape/db"
   "antivape/schemas"
+  "antivape/repositories"
 )
 
 type RoomService interface {
@@ -12,12 +13,14 @@ type RoomService interface {
   Find(schema schemas.RoomFindSchema) []schemas.RoomSchema
   Update(roomID uint, schema schemas.RoomUpdateSchema)
   Delete(roomID uint)
+  GetStatistic(roomID uint) schemas.SensorDataRoomSchema
   FilterByOwnerID(ownerID uint, rooms ...schemas.RoomSchema) []schemas.RoomSchema
 }
 
 type roomService struct {
   baseService
   db *gorm.DB
+  sensorDataRep repositories.SensorDataRepository
 }
 
 func (s roomService) modelToSchema(model models.Room) schemas.RoomSchema {
@@ -77,6 +80,13 @@ func (s roomService) Delete(roomID uint) {
   s.delete(&models.Room{}, roomID)
 }
 
+func (s roomService) GetStatistic(roomID uint) schemas.SensorDataRoomSchema {
+  filters := make(map[string]interface{}, 1)
+  filters["room_id"] = roomID
+  statistic := s.sensorDataRep.GetStatistic(filters)
+  return schemas.SensorDataRoomSchema{Co2: statistic[0].Co2, Tvoc: statistic[0].Tvoc, RoomID: roomID}
+}
+
 func (s roomService) FilterByOwnerID(ownerID uint, rooms ...schemas.RoomSchema) []schemas.RoomSchema {
   var filtered []schemas.RoomSchema
   for _, room := range rooms {
@@ -86,6 +96,6 @@ func (s roomService) FilterByOwnerID(ownerID uint, rooms ...schemas.RoomSchema) 
   return filtered
 }
 
-func NewRoomService(db *gorm.DB) RoomService {
-  return roomService{baseService: baseService{db: db}}
+func NewRoomService(db *gorm.DB, sensorDataRep repositories.SensorDataRepository) RoomService {
+  return roomService{baseService: baseService{db: db}, sensorDataRep: sensorDataRep}
 }

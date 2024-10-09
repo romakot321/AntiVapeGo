@@ -326,6 +326,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/room/{id}/statistic": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get room statistic",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Room"
+                ],
+                "summary": "Get room statistic",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Room ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.SensorDataRoomSchema"
+                        }
+                    }
+                }
+            }
+        },
         "/sensor": {
             "post": {
                 "security": [
@@ -827,6 +861,40 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/zone/{id}/statistic": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get zone statistic",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Zone"
+                ],
+                "summary": "Get zone statistic",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Zone ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.SensorDataZoneSchema"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -958,6 +1026,34 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "room_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schemas.SensorDataRoomSchema": {
+            "type": "object",
+            "properties": {
+                "co2": {
+                    "type": "integer"
+                },
+                "roomID": {
+                    "type": "integer"
+                },
+                "tvoc": {
+                    "type": "integer"
+                }
+            }
+        },
+        "schemas.SensorDataZoneSchema": {
+            "type": "object",
+            "properties": {
+                "rooms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/schemas.SensorDataRoomSchema"
+                    }
+                },
+                "zoneID": {
                     "type": "integer"
                 }
             }
