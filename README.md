@@ -19,3 +19,4 @@ Sensors are in rooms, rooms are in zones. Only owner and admin/superuser has acc
 - Create rooms by POST `/room`
 - Create sensors by POST `/sensor`
 - Sensors send data into `/external/sensors_data` POST route in real-time
+- Users can see statistics of sensors data by room or zone's rooms by GET `/room/{id}/statistic` or GET `/zone/{id}/statistic`
